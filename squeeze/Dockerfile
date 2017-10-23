@@ -9,7 +9,8 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV DEBEMAIL manuel@altenwald.com
 ENV DEBFULLNAME "Manuel Rubio"
 
-ADD sources.list /etc/apt/sources.list.d/sources.list
+ADD sources.list /etc/apt/sources.list
+ADD 00noexpire /etc/apt/apt.conf.d/00noexpire
 RUN apt-get update -qq
 RUN apt-get dist-upgrade -y
 RUN apt-get build-dep -y erlang

@@ -1,3 +1,4 @@
-deb-src http://deb.debian.org/debian squeeze main
-deb-src http://deb.debian.org/debian squeeze-updates main
-deb-src http://security.debian.org squeeze/updates main
+deb http://archive.debian.org/debian squeeze main
+deb http://archive.debian.org/debian squeeze-lts main
+deb-src http://archive.debian.org/debian squeeze main
+deb-src http://archive.debian.org/debian squeeze-lts main
