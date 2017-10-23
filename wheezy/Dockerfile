@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND noninteractive
 ENV DEBEMAIL manuel@altenwald.com
 ENV DEBFULLNAME "Manuel Rubio"
 
-ADD sources.list /etc/apt/sources.list.d/sources.list
+ADD sources.list /etc/apt/sources.list
 RUN apt-get update -qq
 RUN apt-get dist-upgrade -y
 RUN apt-get install -y build-essential curl devscripts libxml2-utils dpkg-dev
