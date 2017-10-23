@@ -34,4 +34,4 @@ cat debian/changelog
 dpkg-buildpackage -us -uc
 
 cd ..
-mv *.dsc *.changes *.deb *.orig.tar.gz /output/
+mv *.dsc *.changes *.deb *.orig.tar.gz *.debian.tar.xz /output/
