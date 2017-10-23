@@ -12,8 +12,8 @@ ENV DEBFULLNAME "Manuel Rubio"
 ADD sources.list /etc/apt/sources.list.d/sources.list
 RUN apt-get update -qq
 RUN apt-get dist-upgrade -y
+RUN apt-get install -y build-essential curl devscripts libxml2-utils dpkg-dev
 RUN apt-get build-dep -y erlang
-RUN apt-get install -y build-essential curl devscripts libxml2-utils
 
 RUN apt-get clean
 
