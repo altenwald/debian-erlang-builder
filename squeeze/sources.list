@@ -1,0 +1,3 @@
+deb-src http://deb.debian.org/debian squeeze main
+deb-src http://deb.debian.org/debian squeeze-updates main
+deb-src http://security.debian.org squeeze/updates main
