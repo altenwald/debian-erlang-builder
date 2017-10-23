@@ -26,7 +26,10 @@ dch --create \
     -v $VSN-1 \
     --urgency low \
     --package otp-$ERLANG_VSN \
+    --distribution unstable \
     "Initial release"
+
+cat debian/changelog
 
 dpkg-buildpackage -us -uc
 
