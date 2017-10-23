@@ -1,6 +1,6 @@
 Source: otp-ERLANG_VSN
-Section: unknown
-Priority: extra
+Section: interpreters
+Priority: optional
 Maintainer: Manuel Rubio <manuel@altenwald.com>
 Build-Depends: debhelper (>= 8.0.0), autotools-dev
 Standards-Version: 3.9.3
