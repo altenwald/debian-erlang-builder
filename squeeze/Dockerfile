@@ -13,8 +13,8 @@ ADD sources.list /etc/apt/sources.list
 ADD 00noexpire /etc/apt/apt.conf.d/00noexpire
 RUN apt-get update -qq
 RUN apt-get dist-upgrade -y
-RUN apt-get build-dep -y erlang
-RUN apt-get install -y build-essential curl devscripts libxml2-utils
+RUN apt-get build-dep -y --force-yes erlang
+RUN apt-get install -y --force-yes build-essential curl devscripts libxml2-utils
 
 RUN apt-get clean
 
