@@ -4,7 +4,7 @@ set -x
 set -e
 
 if [ ! -f /input/otp_src_$ERLANG_VSN.tar.gz ]; then
-    curl -L -O https://github.com/erlang/otp/releases/download/OTP-$ERLANG_VSN/otp_src_$ERLANG_VSN.tar.gz
+    curl -O http://erlang.org/download/otp_src_$ERLANG_VSN.tar.gz
     cp otp_src_$ERLANG_VSN.tar.gz /input/
 else
     cp /input/otp_src_$ERLANG_VSN.tar.gz .
