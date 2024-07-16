@@ -10,14 +10,36 @@ This Erlang/OTP builder is a system based on Docker to build the Debian packages
 
 If you want to propose changes you can fork and create a pull request, create an issue with a request/question and/or make a donation to support this and other similar projects.
 
-Versions of Debian (see https://wiki.debian.org/DebianReleases)
+Docker images corresponding to the Debian releases supported (see https://wiki.debian.org/DebianReleases)
 
-6. Squeeze (end of life: 2016-02-29)
-7. Wheezy (end of life: 2018-05-31)
-8. Jessie (end of life: 2020-06-30)
-9. Stretch (end of life: 2022-06-30)
-10. Buster (old-stable)
-11. Bullseye (stable)
-12. Bookworm (testing)
+9. erlang_stretch
+10. erlang_buster
+11. erlang_bullseye
+12. erlang_bookworm
+
+You can create each of these images going into the specific directory and running:
+
+```
+docker build -t erlang_stretch .
+```
+
+These images must be required during the build process.
+
+The build process is now depending on a python script:
+
+```
+mkdir -p debian/12/pool
+mkdir input
+git clone https://github.com/erlang/otp
+
+DEBIAN_VSN=12 ./build_otp.py
+```
+
+As you can see it depends on three directories that must be available:
+
+- `debian/XX/pool` based on the Debian release, it's the output where the deb packages are going to be placed.
+- `input` is the directory for the source code for Erlang, the system will be creating tarball files according to the different tags.
+- `otp` is the source code for Erlang. The script will check the tags, the source code downloaded and the packages generated to conclude what are the following steps to do.
+
 
 Enjoy!
