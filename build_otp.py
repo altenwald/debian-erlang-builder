@@ -24,11 +24,6 @@ codenames = {
     "7": "wheezy"
 }
 
-# content = ""
-# with open("/etc/debian_version") as f:
-#     content = f.read()
-# debian_vsn = re.sub(r"^([0-9]+).*\n$", r"\1", content)
-
 debian_pool = pathlib.Path("debian/" + debian_vsn + "/pool")
 debian_pool.is_dir() or sys.exit("missing " + str(debian_pool))
 
@@ -95,19 +90,27 @@ for root_vsn, vsn in last_vsn.items():
     if full_path.is_file():
         continue
 
+    cwd = os.getcwd()
+    volumes = {
+        f"{cwd}/input": {"bind": "/input", "mode": "rw"},
+        f"{cwd}/debian/{debian_vsn}/pool": {"bind": "/output", "mode": "rw"}
+    }
+    if debian_vsn == "12":
+        if root_vsn in ["24.0", "24.1", "24.2"]:
+            volumes[f"{cwd}/debian-erlang-builder/bookworm/24/patches"] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
+        if root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]:
+            continue
+
     print(f"creating {str(full_path)}")
     container = client.containers.run(
-        "erlang_bookworm",
+        f"erlang_{codenames[debian_vsn]}",
         detach=True,
         environment=[
-            "ERLANG_VSN=27.0",
-            "VSN=27.0.1",
-            "ERL_TOP=/usr/local/src/otp-27.0-27.0.1"
+            f"ERLANG_VSN={root_vsn}",
+            f"VSN={vsn}",
+            f"ERL_TOP=/usr/local/src/otp-{root_vsn}-{vsn}"
         ],
-        volumes={
-            os.getcwd() + "/input": {"bind": "/input", "mode": "rw"},
-            os.getcwd() + "/debian/12/pool": {"bind": "/output", "mode": "rw"}
-        }
+        volumes=volumes
     )
     stream = container.logs(stream=True)
     print_clean()
