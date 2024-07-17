@@ -82,10 +82,14 @@ def print_last_lines(last_lines):
 def print_clean():
     print("\n" * 10, end="")
 
+def header(text):
+    spaces = ' ' * (max_line_len - 2 - len(text))
+    print(f"\033[7m {text} {spaces}\033[27m")
+
 # create deb
 client = docker.from_env()
 for root_vsn, vsn in last_vsn.items():
-    filename = "otp-" + root_vsn + "_" + vsn + "-1_amd64.deb"
+    filename = f"otp-{root_vsn}_{vsn}-1_amd64.deb"
     full_path = debian_pool / filename
     if full_path.is_file():
         continue
@@ -96,12 +100,12 @@ for root_vsn, vsn in last_vsn.items():
         f"{cwd}/debian/{debian_vsn}/pool": {"bind": "/output", "mode": "rw"}
     }
     if debian_vsn == "12":
-        if root_vsn in ["24.0", "24.1", "24.2"]:
+        if root_vsn == "24.2":
             volumes[f"{cwd}/debian-erlang-builder/bookworm/24/patches"] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
-        if root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]:
+        if root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]:
             continue
 
-    print(f"creating {str(full_path)}")
+    header(f"creating {str(full_path)}")
     container = client.containers.run(
         f"erlang_{codenames[debian_vsn]}",
         detach=True,
@@ -114,8 +118,15 @@ for root_vsn, vsn in last_vsn.items():
     )
     stream = container.logs(stream=True)
     print_clean()
-    for output in stream:
-        last_lines.append(output.decode('utf8').strip())
-        print_last_lines(last_lines)
-    container.remove()
-
+    logfile = debian_pool / f"otp-{root_vsn}_{vsn}.log"
+    with open(logfile, "w") as file:
+        for output in stream:
+            line = output.decode('utf8')
+            file.write(line)
+            line = line.strip().translate(str.maketrans({chr(i): '.' for i in range(32)}))
+            last_lines.append(line)
+            print_last_lines(last_lines)
+    if full_path.is_file():
+        container.remove()
+    else:
+        print(f"\033[1;41mERROR\033[0m: you can find the log errors in {logfile}")
