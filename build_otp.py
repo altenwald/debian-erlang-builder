@@ -99,6 +99,10 @@ for root_vsn, vsn in last_vsn.items():
         f"{cwd}/input": {"bind": "/input", "mode": "rw"},
         f"{cwd}/debian/{debian_vsn}/pool": {"bind": "/output", "mode": "rw"}
     }
+    if debian_vsn in ["10", "11"]:
+        if root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
+            continue
+
     if debian_vsn == "12":
         if root_vsn == "24.2":
             volumes[f"{cwd}/debian-erlang-builder/bookworm/24/patches"] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
@@ -126,7 +130,6 @@ for root_vsn, vsn in last_vsn.items():
             line = line.strip().translate(str.maketrans({chr(i): '.' for i in range(32)}))
             last_lines.append(line)
             print_last_lines(last_lines)
-    if full_path.is_file():
-        container.remove()
-    else:
+    container.remove()
+    if not full_path.is_file():
         print(f"\033[1;41mERROR\033[0m: you can find the log errors in {logfile}")
