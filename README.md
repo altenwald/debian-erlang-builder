@@ -17,10 +17,10 @@ Docker images corresponding to the Debian releases supported (see https://wiki.d
 11. erlang_bullseye
 12. erlang_bookworm
 
-You can create each of these images going into the specific directory and running:
+You can create each of these images running the script:
 
 ```
-docker build -t erlang_stretch .
+./build_image.sh stretch
 ```
 
 These images must be required during the build process.
@@ -40,6 +40,5 @@ As you can see it depends on three directories that must be available:
 - `debian/XX/pool` based on the Debian release, it's the output where the deb packages are going to be placed.
 - `input` is the directory for the source code for Erlang, the system will be creating tarball files according to the different tags.
 - `otp` is the source code for Erlang. The script will check the tags, the source code downloaded and the packages generated to conclude what are the following steps to do.
-
 
 Enjoy!

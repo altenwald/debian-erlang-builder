@@ -16,6 +16,7 @@ override_dh_clean:
 	dh_clean -Xtest.erl.orig
 
 override_dh_auto_configure:
+	[ -x configure ] || ./otp_build autoconf
 	dh_auto_configure -- --prefix=/opt/otp-ERLANG_VSN
 
 override_dh_auto_test:

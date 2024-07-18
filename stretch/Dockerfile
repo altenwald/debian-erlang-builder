@@ -3,11 +3,11 @@ FROM debian:stretch
 LABEL maintainer="Manuel Rubio <manuel@altenwald.com>"
 LABEL description="Debian Stretch to build Erlang/OTP packages"
 
-ENV ERLANG_VSN 19.3
-ENV VSN 1.0.0
-ENV DEBIAN_FRONTEND noninteractive
-ENV DEBEMAIL manuel@altenwald.com
-ENV DEBFULLNAME "Manuel Rubio"
+ENV ERLANG_VSN=19.3
+ENV VSN=1.0.0
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBEMAIL=manuel@altenwald.com
+ENV DEBFULLNAME="Manuel Rubio"
 
 ADD sources.list /etc/apt/sources.list
 RUN apt-get update -qq
