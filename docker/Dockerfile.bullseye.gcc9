@@ -1,0 +1,5 @@
+FROM erlang_bullseye
+
+RUN apt-get install -y gcc-9
+RUN apt-get clean
+RUN ln -snf /usr/bin/gcc-9 /usr/bin/gcc

@@ -9,6 +9,7 @@ import tarfile
 import git
 import docker
 import collections
+import getopt
 
 otp_git_dir = os.getenv("OTP_GIT_DIR", "otp")
 debian_vsn = os.getenv("DEBIAN_VSN", "")
@@ -35,40 +36,31 @@ def match(repo_tag):
 def tr(repo_tag):
     return re.sub(r'^OTP-([0-9.]+)$', r'\1', str(repo_tag))
 
-last_vsn = {}
-with git.Repo("otp") as repo:
-    repo.remotes.origin.fetch()
-    all_vsn = [tr(repo_tag) for repo_tag in repo.tags if match(repo_tag)]
-    main_vsn = set(map(lambda x:x[0:4], all_vsn))
-    last_vsn = dict([[(y[0:4], y) for y in all_vsn if y[0:4]==x][-1] for x in main_vsn])
+def create_input_tarball(root_vsn, vsn, repo, input_path):
+    otp_src = f"otp_src_{root_vsn}"
+    tarname = f"{otp_src}.tar.gz"
+    full_path = input_path / tarname
+    if full_path.is_file():
+        return
 
-    # create inputs
-    for root_vsn, vsn in last_vsn.items():
-        input_path = pathlib.Path("input")
-        otp_src = f"otp_src_{root_vsn}"
-        tarname = f"{otp_src}.tar.gz"
-        full_path = input_path / tarname
-        if full_path.is_file():
-            continue
+    print(f"create {str(full_path)}")
 
-        print(f"create {str(full_path)}")
+    print(f"  change to tag OTP-{vsn}")
+    repo.head.reference = f"OTP-{vsn}"
+    repo.git.reset("--hard")
 
-        print(f"  change to tag OTP-{vsn}")
-        repo.head.reference = "OTP-" + vsn
-        repo.git.reset("--hard")
-
-        if pathlib.Path(otp_src).is_file():
-            print(f"  remove old {otp_src}")
-            shutil.rmtree(otp_src)
-        print(f"  copy otp to {otp_src}")
-        shutil.copytree(otp_git_dir, otp_src, ignore=shutil.ignore_patterns(".git*"))
-
-        print(f"  compressing {otp_src}.tar.gz")
-        with tarfile.open(full_path, "w:gz") as tar:
-            tar.add(otp_src)
-
-        print(f"  removing {otp_src} directory")
+    if pathlib.Path(otp_src).is_file():
+        print(f"  remove old {otp_src}")
         shutil.rmtree(otp_src)
+    print(f"  copy otp to {otp_src}")
+    shutil.copytree(otp_git_dir, otp_src, ignore=shutil.ignore_patterns(".git*"))
+
+    print(f"  compressing {otp_src}.tar.gz")
+    with tarfile.open(full_path, "w:gz") as tar:
+        tar.add(otp_src)
+
+    print(f"  removing {otp_src} directory")
+    shutil.rmtree(otp_src)
 
 last_lines = collections.deque(maxlen=10)
 max_line_len = shutil.get_terminal_size().columns
@@ -86,32 +78,48 @@ def header(text):
     spaces = ' ' * (max_line_len - 2 - len(text))
     print(f"\033[7m {text} {spaces}\033[27m")
 
-# create deb
-client = docker.from_env()
-for root_vsn, vsn in last_vsn.items():
-    filename = f"otp-{root_vsn}_{vsn}-1_amd64.deb"
-    full_path = debian_pool / filename
+def to_create(debian_vsn, root_vsn):
+    if debian_vsn == "9" and root_vsn[0:2] in ["17", "18", "19", "20"]:
+        return False
+
+    if debian_vsn in ["10", "11"] and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
+        return False
+
+    if debian_vsn == "12" and (root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]):
+        return False
+
+    return True
+
+def create_deb(client, root_vsn, vsn, full_path, logfile):
+    global codenames
+    global debian_pool
+    global debian_vsn
+
     if full_path.is_file():
-        continue
+        return False
+
+    image = f"erlang_{codenames[debian_vsn]}"
 
     cwd = os.getcwd()
     volumes = {
         f"{cwd}/input": {"bind": "/input", "mode": "rw"},
         f"{cwd}/debian/{debian_vsn}/pool": {"bind": "/output", "mode": "rw"}
     }
-    if debian_vsn in ["10", "11"]:
-        if root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
-            continue
 
-    if debian_vsn == "12":
-        if root_vsn == "24.2":
-            volumes[f"{cwd}/debian-erlang-builder/bookworm/24/patches"] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
-        if root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]:
-            continue
+    if not to_create(debian_vsn, root_vsn):
+        return False
+
+    if debian_vsn in ["11", "12"] and root_vsn[0:4] in ["22.0", "22.1", "22.2"]:
+        image = f"{image}_gcc9"
+
+    project_path = os.path.dirname(__file__)
+    patch_dir = f"{project_path}/patches/{codenames[debian_vsn]}/{root_vsn}"
+    if pathlib.Path(patch_dir).is_dir():
+        volumes[patch_dir] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
 
     header(f"creating {str(full_path)}")
     container = client.containers.run(
-        f"erlang_{codenames[debian_vsn]}",
+        image,
         detach=True,
         environment=[
             f"ERLANG_VSN={root_vsn}",
@@ -122,7 +130,6 @@ for root_vsn, vsn in last_vsn.items():
     )
     stream = container.logs(stream=True)
     print_clean()
-    logfile = debian_pool / f"otp-{root_vsn}_{vsn}.log"
     with open(logfile, "w") as file:
         for output in stream:
             line = output.decode('utf8')
@@ -131,5 +138,53 @@ for root_vsn, vsn in last_vsn.items():
             last_lines.append(line)
             print_last_lines(last_lines)
     container.remove()
-    if not full_path.is_file():
+    return True
+
+opts, args = getopt.getopt(sys.argv[1:], "hc", ["help", "check"])
+for (option, value) in opts:
+    if option in ["-h", "--help"]:
+        print("""
+        syntax: ./build_otp.py [--check|-c|--help|-h]
+
+        help  h  show this help message
+        check c  check what debian packages are missing
+        """)
+        sys.exit(0)
+
+    elif option in ["-c", "--check"]:
+        last_vsn = {}
+        with git.Repo("otp") as repo:
+            repo.remotes.origin.fetch()
+            all_vsn = [tr(repo_tag) for repo_tag in repo.tags if match(repo_tag)]
+            main_vsn = set(map(lambda x:x[0:4], all_vsn))
+            last_vsn = dict([[(y[0:4], y) for y in all_vsn if y[0:4]==x][-1] for x in main_vsn])
+
+        vsns = list(filter(lambda root_vsn: not (debian_pool / f"otp-{root_vsn}_{last_vsn[root_vsn]}-1_amd64.deb").is_file() and to_create(debian_vsn, root_vsn), last_vsn.keys()))
+        if len(vsns) == 0:
+            print("Everything done!")
+        else:
+            print(f"Missing ones: {vsns}")
+
+        sys.exit(0)
+
+last_vsn = {}
+with git.Repo("otp") as repo:
+    repo.remotes.origin.fetch()
+    all_vsn = [tr(repo_tag) for repo_tag in repo.tags if match(repo_tag)]
+    main_vsn = set(map(lambda x:x[0:4], all_vsn))
+    last_vsn = dict([[(y[0:4], y) for y in all_vsn if y[0:4]==x][-1] for x in main_vsn])
+
+    # create inputs
+    input_path = pathlib.Path("input")
+    for root_vsn, vsn in last_vsn.items():
+        create_input_tarball(root_vsn, vsn, repo, input_path)
+
+# create deb
+client = docker.from_env()
+for root_vsn, vsn in last_vsn.items():
+    filename = f"otp-{root_vsn}_{vsn}-1_amd64.deb"
+    full_path = debian_pool / filename
+    logfile = debian_pool / f"otp-{root_vsn}_{vsn}.log"
+
+    if create_deb(client, root_vsn, vsn, full_path, logfile) and not full_path.is_file():
         print(f"\033[1;41mERROR\033[0m: you can find the log errors in {logfile}")

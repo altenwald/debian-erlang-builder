@@ -9,7 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV DEBEMAIL=manuel@altenwald.com
 ENV DEBFULLNAME="Manuel Rubio"
 
-ADD sources.list /etc/apt/sources.list.d/sources.list
+ADD sources.list.d/bookworm.list /etc/apt/sources.list.d/sources.list
 RUN apt-get update -qq
 RUN apt-get dist-upgrade -y
 RUN apt-get build-dep -y erlang
@@ -19,7 +19,7 @@ RUN apt-get clean
 
 WORKDIR /usr/local/src
 ADD debian debian
-ADD debian_erlang.sh /usr/local/bin/debian_erlang.sh
-RUN chmod +x /usr/local/bin/debian_erlang.sh
+ADD scripts/build.sh /usr/local/bin/build.sh
+RUN chmod +x /usr/local/bin/build.sh
 
-CMD ["debian_erlang.sh"]
+CMD ["build.sh"]
