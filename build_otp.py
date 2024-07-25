@@ -113,7 +113,7 @@ def create_deb(client, root_vsn, vsn, full_path, logfile):
         image = f"{image}_gcc9"
 
     project_path = os.path.dirname(__file__)
-    patch_dir = f"{project_path}/patches/{codenames[debian_vsn]}/{root_vsn}"
+    patch_dir = f"{project_path}/patches/{codenames[debian_vsn]}/{root_vsn}/patches"
     if pathlib.Path(patch_dir).is_dir():
         volumes[patch_dir] = {"bind": "/usr/local/src/debian/patches", "mode": "ro"}
 
