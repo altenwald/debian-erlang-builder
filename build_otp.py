@@ -183,8 +183,8 @@ with git.Repo("otp") as repo:
 client = docker.from_env()
 for root_vsn, vsn in last_vsn.items():
     filename = f"otp-{root_vsn}_{vsn}-1_amd64.deb"
-    full_path = debian_pool / filename
+    deb_file = debian_pool / filename
     logfile = debian_pool / f"otp-{root_vsn}_{vsn}.log"
 
-    if create_deb(client, root_vsn, vsn, full_path, logfile) and not full_path.is_file():
+    if create_deb(client, root_vsn, vsn, deb_file, logfile) and not deb_file.is_file():
         print(f"\033[1;41mERROR\033[0m: you can find the log errors in {logfile}")
