@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 
-BASE_PATH=apt.altenwald.com
+if [ -z "$BASE_PATH" ]; then
+    echo "missing BASE_PATH"
+    exit 1
+fi
 
 if [ ! -f "$BASE_PATH/conf/distributions" ] || [ ! -f "$BASE_PATH/altenwald.key" ]; then
     echo "missing files for repository"

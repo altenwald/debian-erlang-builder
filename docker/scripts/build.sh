@@ -11,7 +11,7 @@ tar xzf /input/otp_src_$ERLANG_VSN.tar.gz
 mv otp_src_$ERLANG_VSN otp-$ERLANG_VSN-$VSN
 tar czf otp-"$ERLANG_VSN"_"$VSN".orig.tar.gz otp-$ERLANG_VSN-$VSN
 
-LAST_DEB="$(find /output -iname "otp-$ERLANG_VSN"_"$VSN-1.debian.tar.xz" | sort --version-sort | tail -1)"
+LAST_DEB="$(find /output -iname "otp-$ERLANG_VSN"_"*-1.debian.tar.xz" | sort --version-sort | tail -1)"
 
 cd /usr/local/src/otp-$ERLANG_VSN-$VSN
 
