@@ -10,6 +10,7 @@ import git
 import docker
 import collections
 import getopt
+import tempfile
 
 otp_git_dir = os.getenv("OTP_GIT_DIR", "otp")
 debian_vsn = os.getenv("DEBIAN_VSN", "")
@@ -38,7 +39,7 @@ def tr(repo_tag):
 
 def create_input_tarball(root_vsn, vsn, repo, input_path):
     otp_src = f"otp_src_{root_vsn}"
-    tarname = f"{otp_src}.tar.gz"
+    tarname = f"otp_src_{vsn}.tar.gz"
     full_path = input_path / tarname
     if full_path.is_file():
         return
@@ -55,7 +56,7 @@ def create_input_tarball(root_vsn, vsn, repo, input_path):
     print(f"  copy otp to {otp_src}")
     shutil.copytree(otp_git_dir, otp_src, ignore=shutil.ignore_patterns(".git*"))
 
-    print(f"  compressing {otp_src}.tar.gz")
+    print(f"  compressing {tarname}")
     with tarfile.open(full_path, "w:gz") as tar:
         tar.add(otp_src)
 
@@ -101,8 +102,10 @@ def create_deb(client, root_vsn, vsn, full_path, logfile):
     image = f"erlang_{codenames[debian_vsn]}"
 
     cwd = os.getcwd()
+    input_temp_dir = tempfile.mkdtemp()
+    shutil.copy(f"{cwd}/input/otp_src_{vsn}.tar.gz", f"{input_temp_dir}/otp_src_{root_vsn}.tar.gz")
     volumes = {
-        f"{cwd}/input": {"bind": "/input", "mode": "rw"},
+        f"{input_temp_dir}": {"bind": "/input", "mode": "rw"},
         f"{cwd}/debian/{debian_vsn}/pool": {"bind": "/output", "mode": "rw"}
     }
 
@@ -138,6 +141,7 @@ def create_deb(client, root_vsn, vsn, full_path, logfile):
             last_lines.append(line)
             print_last_lines(last_lines)
     container.remove()
+    shutil.rmtree(input_temp_dir)
     return True
 
 opts, args = getopt.getopt(sys.argv[1:], "hc", ["help", "check"])
