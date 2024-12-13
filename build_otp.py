@@ -80,10 +80,7 @@ def header(text):
     print(f"\033[7m {text} {spaces}\033[27m")
 
 def to_create(debian_vsn, root_vsn):
-    if debian_vsn == "9" and root_vsn[0:2] in ["17", "18", "19", "20"]:
-        return False
-
-    if debian_vsn in ["10", "11"] and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
+    if debian_vsn in ["9", "10", "11"] and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
         return False
 
     if debian_vsn == "12" and (root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]):
@@ -112,7 +109,8 @@ def create_deb(client, root_vsn, vsn, full_path, logfile):
     if not to_create(debian_vsn, root_vsn):
         return False
 
-    if debian_vsn in ["11", "12"] and root_vsn[0:4] in ["22.0", "22.1", "22.2"]:
+    # to create is denying the creation of Debian 12 and OTP 22
+    if debian_vsn == "11" and root_vsn[0:4] in ["22.0", "22.1", "22.2"]:
         image = f"{image}_gcc9"
 
     project_path = os.path.dirname(__file__)
