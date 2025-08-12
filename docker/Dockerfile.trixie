@@ -1,0 +1,25 @@
+FROM debian:trixie
+
+LABEL maintainer="Manuel Rubio <manuel@altenwald.com>"
+LABEL description="Debian Trixie to build Erlang/OTP packages"
+
+ENV ERLANG_VSN=24.0
+ENV VSN=1.0.0
+ENV DEBIAN_FRONTEND=noninteractive
+ENV DEBEMAIL=manuel@altenwald.com
+ENV DEBFULLNAME="Manuel Rubio"
+
+ADD sources.list.d/trixie.list /etc/apt/sources.list.d/sources.list
+RUN apt update -qq
+RUN apt dist-upgrade -y
+RUN apt build-dep -y erlang
+RUN apt install -y build-essential curl devscripts libxml2-utils
+
+RUN apt-get clean
+
+WORKDIR /usr/local/src
+ADD debian debian
+ADD scripts/build.sh /usr/local/bin/build.sh
+RUN chmod +x /usr/local/bin/build.sh
+
+CMD ["build.sh"]

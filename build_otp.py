@@ -83,7 +83,7 @@ def to_create(debian_vsn, root_vsn):
     if debian_vsn in ["9", "10", "11"] and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
         return False
 
-    if debian_vsn == "12" and (root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]):
+    if debian_vsn in ["12", "13"] and (root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]):
         return False
 
     return True
@@ -107,9 +107,10 @@ def create_deb(client, root_vsn, vsn, full_path, logfile):
     }
 
     if not to_create(debian_vsn, root_vsn):
+        shutil.rmtree(input_temp_dir)
         return False
 
-    # to create is denying the creation of Debian 12 and OTP 22
+    # to create is denying the creation of Debian 12 or 13 and OTP 22
     if debian_vsn == "11" and root_vsn[0:4] in ["22.0", "22.1", "22.2"]:
         image = f"{image}_gcc9"
 

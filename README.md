@@ -16,11 +16,12 @@ Docker images corresponding to the Debian releases supported (see https://wiki.d
 10. erlang_buster
 11. erlang_bullseye
 12. erlang_bookworm
+13. erlang_trixie
 
 You can create each of these images running the script:
 
 ```
-./build_image.sh stretch
+./build_image.sh trixie
 ```
 
 These images must be required during the build process.
@@ -28,11 +29,11 @@ These images must be required during the build process.
 The build process is now depending on a python script:
 
 ```
-mkdir -p debian/12/pool
+mkdir -p debian/13/pool
 mkdir input
 git clone https://github.com/erlang/otp
 
-DEBIAN_VSN=12 ./build_otp.py
+DEBIAN_VSN=13 ./build_otp.py
 ```
 
 As you can see it depends on three directories that must be available:
