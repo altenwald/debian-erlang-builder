@@ -80,7 +80,10 @@ def header(text):
     print(f"\033[7m {text} {spaces}\033[27m")
 
 def to_create(debian_vsn, root_vsn):
-    if debian_vsn in ["9", "10", "11"] and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
+    if debian_vsn in ["9", "10"] and (root_vsn[0:2] in ["17", "18", "19", "20", "21"] or int(root_vsn[0:2]) >= 29):
+        return False
+
+    if debian_vsn == "11" and root_vsn[0:2] in ["17", "18", "19", "20", "21"]:
         return False
 
     if debian_vsn in ["12", "13"] and (root_vsn in ["24.0", "24.1"] or root_vsn[0:2] in ["17", "18", "19", "20", "21", "22", "23"]):

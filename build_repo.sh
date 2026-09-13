@@ -22,7 +22,6 @@ function add() {
 
     echo "[$COMMAND] $DIST_NAME <- $FILE"
     reprepro --ask-passphrase \
-      --dbdir ./debian/$DIST_VSN/db \
       -Vb $BASE_PATH/ \
       -S $SECTION \
       -C $COMPONENT/$DIST_NAME \
